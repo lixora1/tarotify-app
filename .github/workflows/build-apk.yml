@@ -22,13 +22,51 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Fix Android embedding
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Fix embedding
         run: |
           mkdir -p android/app/src/main/kotlin/com/tarotify/tarotify
           printf 'package com.tarotify.tarotify\nimport io.flutter.embedding.android.FlutterActivity\nclass MainActivity: FlutterActivity()' > android/app/src/main/kotlin/com/tarotify/tarotify/MainActivity.kt
-
-      - name: Get dependencies
-        run: flutter pub get
+          rm -f android/app/src/main/AndroidManifest.xml
+          cat > android/app/src/main/AndroidManifest.xml << 'MANIFEST'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="com.android.vending.BILLING"/>
+    <application
+        android:label="Tarotify"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="false">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6091501003143864~3382185344"/>
+        <meta-data android:name="com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT" android:value="true"/>
+    </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+    </queries>
+</manifest>
+MANIFEST
 
       - name: Build AAB
         run: flutter build appbundle --release
