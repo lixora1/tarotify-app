@@ -29,7 +29,9 @@ jobs:
         run: flutter pub get
  
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          cd android
+          ./gradlew assembleRelease
  
       - name: Upload APK
         uses: actions/upload-artifact@v4
